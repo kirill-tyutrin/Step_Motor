@@ -17,4 +17,6 @@ void MOTOR_Direction(uint8_t);
 
 void DelayMotor(uint32_t us);
 
+void ACC(void);
+
 #endif

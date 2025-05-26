@@ -15,20 +15,19 @@ static GPIO_TypeDef *Motor_Step;
 //
 extern TIM_HandleTypeDef timer;
 extern volatile uint8_t STOP_MOTOR;
-extern volatile uint8_t KN;
+extern volatile uint8_t DIR;
 extern volatile uint8_t flag_irq;
 extern volatile uint8_t FLAG;
 //extern volatile uint9_t FLAG1;
 extern volatile uint8_t flag_usk;
 volatile uint8_t flag_dec = 0;
 extern volatile uint8_t flag_test;
-
+extern volatile uint8_t FLAG_CHANGE_DIR;
 const int steps = 1600;
 float c0 = 1;
-//const char *type[] = { "ob/m", "ob/s" };
 uint32_t Delta_Time;
 uint32_t buffer;
-uint8_t buffer_dir = 1;
+uint8_t buffer_dir;
 uint8_t dir__ = 1;
 void DelayMotor(uint32_t us) {
 
@@ -81,6 +80,8 @@ void ACC() { // функция ускорения или торможения
 	C = c0;
 	uint32_t i = 1;
 	if (flag_usk) {
+		HAL_GPIO_WritePin(Motor_Direction, Motor_Pin_Direction, DIR); //Задаем направление
+
 		while (C >= 1) {
 			HAL_GPIO_WritePin(Motor_Step, Motor_Pin_Step, GPIO_PIN_SET);
 			DelayMotor((int) Delta_Time * Acceleration(i, C));
@@ -89,6 +90,7 @@ void ACC() { // функция ускорения или торможения
 			C = Acceleration(i, C);
 			i++;
 		}
+
 		buffer = i;
 		flag_usk = 0;
 	}
@@ -102,30 +104,31 @@ void ACC() { // функция ускорения или торможения
 			DelayMotor((int) Delta_Time * Deceleration(i, C));
 			C = Deceleration(i, C);
 		}
+		HAL_GPIO_WritePin(Motor_Direction, Motor_Pin_Direction, DIR); //Задаем направление
 
 	}
 }
 void MOTOR_Direction(uint8_t stable) {
 	if (stable >= 2) {
 		return;
-	}
-	HAL_GPIO_WritePin(Motor_Direction, Motor_Pin_Direction, stable);
+		buffer_dir = stable;
+
+}
 }
 void Steps(uint32_t steps_) {
 	ACC();
 	for (size_t i = 0; i < steps_; i++) { //razgon
-//			if(buffer_dir != dir__ && flag_usk == 0){
-//					flag_dec = 1;
-//					ACC();
-//					flag_dec = 0;
-//					flag_usk = 1;
-//					HAL_GPIO_WritePin(Motor_Direction, Motor_Pin_Direction, dir__);
-//					ACC();
-//					flag_dec = 0;
-//					flag_usk = 0;
-//					buffer_dir = dir__;
-//
-//			}
+		if(FLAG_CHANGE_DIR){
+			flag_dec = 1;
+			ACC();
+			flag_dec = 0;
+			flag_usk = 1;
+			HAL_GPIO_WritePin(Motor_Direction, Motor_Pin_Direction, DIR); //Задаем направление
+			ACC();
+			flag_usk = 0;
+			FLAG_CHANGE_DIR = 0;
+		}
+		HAL_GPIO_WritePin(Motor_Direction, Motor_Pin_Direction, DIR); //Задаем направление
 		HAL_GPIO_WritePin(Motor_Step, Motor_Pin_Step, GPIO_PIN_SET);
 		DelayMotor(Delta_Time);
 		HAL_GPIO_WritePin(Motor_Step, Motor_Pin_Step, GPIO_PIN_RESET);
@@ -141,4 +144,5 @@ void Steps(uint32_t steps_) {
 		}
 	}
 }
+
 

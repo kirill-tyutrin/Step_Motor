@@ -96,6 +96,7 @@ volatile uint8_t KN = 0;
 volatile uint8_t flag_usk = 1;
 
 volatile uint8_t flag_test = 0;
+volatile uint8_t FLAG_CHANGE_DIR = 0;
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) { //Прерывание. Р
 
 	if (GPIO_Pin == KN2_Pin) { // остановка или запуск двигателя
@@ -200,6 +201,8 @@ int main(void) {
 	__HAL_TIM_SET_COUNTER(&htim1, 0);
 	Init_Pins(GPIOB, ENA_Pin, GPIOA, STP_Pin, GPIOA, DIR_Pin); // Инициализация пинов
 // ============================================================================
+
+// ==========================ВЫВОДИМ ПАРАМЕТРЫ НА ДИСПЛЕЙ =============================
 	lcd_send_cmd(0b00001100);
 	HAL_Delay(10);
 	lcd_put_cur(0, 0);
@@ -209,29 +212,31 @@ int main(void) {
 	} else {
 		lcd_send_string("CW ");
 	}
-// ============================================================================
 	HAL_Delay(5);
 	lcd_put_cur(1, 0);
 	lcd_send_string("RPM:");
 	HAL_Delay(10);
 	lcd_send_string(itoa(SPEED_RPM, buff, 10));
-	uint32_t enc_previous = 0;
-	uint32_t time_of_delay = 0;
 	lcd_put_cur(0, 7);
 	lcd_send_string(" _");
 	HAL_Delay(100);
 	HAL_GPIO_EXTI_Callback(KN1_Pin);
 // ==============================================================================
+	uint32_t enc_previous = 0;
+	uint32_t time_of_delay = 0;
 	void MENU_SET(uint8_t enc_pos, uint32_t Delay) {
 
 		if (enc_pos != enc_previous && HAL_GetTick() - time_of_delay >= Delay) {
 			switch (Position_Cur) {
 			case 0:
 				if (__HAL_TIM_IS_TIM_COUNTING_DOWN(&htim1)) {
+					if (DIR != 1 && STOP_MOTOR == 1) FLAG_CHANGE_DIR = 1;
 					DIR = 1;
 				} else {
+					if (DIR != 0 && STOP_MOTOR == 1) FLAG_CHANGE_DIR = 1;
 					DIR = 0;
 				}
+
 				break;
 
 			case 1:
@@ -292,15 +297,13 @@ int main(void) {
 		if (STOP_MOTOR == 0) { //РАБОТА В МЕНЮ
 
 // ==================================================================
-//			HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
-
 			ext();
 			lcd_put_cur(1, 9);
 			lcd_send_string("    ");
 			lcd_put_cur(1, 9);
 			lcd_send_string("OFF");
 			MENU_SET(TIM1->CNT / 2, 0);
-//			time1 = HAL_GetTick()
+
 
 		}
 		if (STOP_MOTOR == 1) {
@@ -312,13 +315,12 @@ int main(void) {
 			flag_usk = 1;
 			while (1) {
 
+				MENU_SET(TIM1->CNT / 2, 300);
 				Motor_On();
-				Speed(SPEED_RPM);
 				MOTOR_Direction(DIR);
+				Speed(SPEED_RPM);
 				ext();
 				Steps(10);
-				MENU_SET(TIM1->CNT / 2, 300);
-
 				if (flag_test == 1) {
 					flag_test = 0;
 					break;

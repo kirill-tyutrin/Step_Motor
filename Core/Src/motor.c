@@ -33,7 +33,8 @@ uint8_t dir__ = 1;
 void DelayMotor(uint32_t us) {
 
 	__HAL_TIM_SET_COUNTER(&timer, 0);
-	while (__HAL_TIM_GET_COUNTER(&timer) < us) ;
+	while (__HAL_TIM_GET_COUNTER(&timer) < us)
+		;
 
 }
 
@@ -66,7 +67,6 @@ void Motor_Off(void) {
 	HAL_GPIO_WritePin(Motor_Enable, Motor_Pin_Enable, GPIO_PIN_SET);
 }
 
-
 float Acceleration(uint32_t n, float a) {
 	return a * (1.0f - 2.0f / (4.0f * n + 1.0f));
 }
@@ -81,7 +81,7 @@ void ACC() { // функция ускорения или торможения
 	C = c0;
 	uint32_t i = 1;
 	if (flag_usk) {
-		while(C >= 1 ) {
+		while (C >= 1) {
 			HAL_GPIO_WritePin(Motor_Step, Motor_Pin_Step, GPIO_PIN_SET);
 			DelayMotor((int) Delta_Time * Acceleration(i, C));
 			HAL_GPIO_WritePin(Motor_Step, Motor_Pin_Step, GPIO_PIN_RESET);
@@ -112,8 +112,8 @@ void MOTOR_Direction(uint8_t stable) {
 	HAL_GPIO_WritePin(Motor_Direction, Motor_Pin_Direction, stable);
 }
 void Steps(uint32_t steps_) {
-		ACC();
-		for (size_t i = 0; i < steps_; i++) { //razgon
+	ACC();
+	for (size_t i = 0; i < steps_; i++) { //razgon
 //			if(buffer_dir != dir__ && flag_usk == 0){
 //					flag_dec = 1;
 //					ACC();
@@ -126,19 +126,19 @@ void Steps(uint32_t steps_) {
 //					buffer_dir = dir__;
 //
 //			}
-			HAL_GPIO_WritePin(Motor_Step, Motor_Pin_Step, GPIO_PIN_SET);
-			DelayMotor(Delta_Time);
-			HAL_GPIO_WritePin(Motor_Step, Motor_Pin_Step, GPIO_PIN_RESET);
-			DelayMotor(Delta_Time);
-			if (STOP_MOTOR == 0) {
-				flag_dec = 1;
-				ACC();
-				flag_dec = 0;
-				flag_usk = 1;
-				flag_test = 1;
-				Motor_Off();
-				break;
-			}
+		HAL_GPIO_WritePin(Motor_Step, Motor_Pin_Step, GPIO_PIN_SET);
+		DelayMotor(Delta_Time);
+		HAL_GPIO_WritePin(Motor_Step, Motor_Pin_Step, GPIO_PIN_RESET);
+		DelayMotor(Delta_Time);
+		if (STOP_MOTOR == 0) {
+			flag_dec = 1;
+			ACC();
+			flag_dec = 0;
+			flag_usk = 1;
+			flag_test = 1;
+			Motor_Off();
+			break;
 		}
+	}
 }
 

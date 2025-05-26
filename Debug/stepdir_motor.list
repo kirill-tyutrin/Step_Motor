@@ -27,23 +27,23 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   ALLOC
  11 .ARM.attributes 00000029  00000000  00000000  00020088  2**0
                   CONTENTS, READONLY
- 12 .debug_info   000113aa  00000000  00000000  000200b1  2**0
+ 12 .debug_info   000113a6  00000000  00000000  000200b1  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 13 .debug_abbrev 0000234e  00000000  00000000  0003145b  2**0
+ 13 .debug_abbrev 0000233d  00000000  00000000  00031457  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_aranges 00001040  00000000  00000000  000337b0  2**3
+ 14 .debug_aranges 00001040  00000000  00000000  00033798  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_ranges 00000f80  00000000  00000000  000347f0  2**3
+ 15 .debug_ranges 00000f80  00000000  00000000  000347d8  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_macro  00018824  00000000  00000000  00035770  2**0
+ 16 .debug_macro  00018824  00000000  00000000  00035758  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   00012717  00000000  00000000  0004df94  2**0
+ 17 .debug_line   00012717  00000000  00000000  0004df7c  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    0009176c  00000000  00000000  000606ab  2**0
+ 18 .debug_str    0009176d  00000000  00000000  00060693  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000050  00000000  00000000  000f1e17  2**0
+ 19 .comment      00000050  00000000  00000000  000f1e00  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  00004b78  00000000  00000000  000f1e68  2**2
+ 20 .debug_frame  00004b78  00000000  00000000  000f1e50  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -1795,23 +1795,21 @@ volatile uint8_t KN = 0;
 volatile uint8_t flag_usk = 1;
 
 volatile uint8_t flag_test = 0;
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) { //Прерывание. Р
  80012e8:	b580      	push	{r7, lr}
  80012ea:	b082      	sub	sp, #8
  80012ec:	af00      	add	r7, sp, #0
  80012ee:	4603      	mov	r3, r0
  80012f0:	80fb      	strh	r3, [r7, #6]
 
-	if (GPIO_Pin == KN2_Pin) { // прерывание. остановка или запуск двигателя
+	if (GPIO_Pin == KN2_Pin) { // остановка или запуск двигателя
  80012f2:	88fb      	ldrh	r3, [r7, #6]
  80012f4:	f5b3 4f80 	cmp.w	r3, #16384	; 0x4000
  80012f8:	d10c      	bne.n	8001314 <HAL_GPIO_EXTI_Callback+0x2c>
-//		HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
 		NVIC->ICER[1] = (1 << (EXTI15_10_IRQn & 0x1F));
  80012fa:	4b11      	ldr	r3, [pc, #68]	; (8001340 <HAL_GPIO_EXTI_Callback+0x58>)
  80012fc:	f44f 7280 	mov.w	r2, #256	; 0x100
  8001300:	f8c3 2084 	str.w	r2, [r3, #132]	; 0x84
-//		__HAL_GPIO_EXTI_CLEAR_IT(KN1_Pin);
 		time1 = HAL_GetTick();
  8001304:	f001 fa64 	bl	80027d0 <HAL_GetTick>
  8001308:	4603      	mov	r3, r0
@@ -1826,13 +1824,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
  8001314:	88fb      	ldrh	r3, [r7, #6]
  8001316:	f5b3 4f00 	cmp.w	r3, #32768	; 0x8000
  800131a:	d10c      	bne.n	8001336 <HAL_GPIO_EXTI_Callback+0x4e>
-//		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
-//		HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
-		NVIC->ICER[1] = (1 << (EXTI15_10_IRQn & 0x1F));
+		NVIC->ICER[1] = (1 << (EXTI15_10_IRQn & 0x1F)); //абота в меню
  800131c:	4b08      	ldr	r3, [pc, #32]	; (8001340 <HAL_GPIO_EXTI_Callback+0x58>)
  800131e:	f44f 7280 	mov.w	r2, #256	; 0x100
  8001322:	f8c3 2084 	str.w	r2, [r3, #132]	; 0x84
-//		__HAL_GPIO_EXTI_CLEAR_IT(KN2_Pin);
 		time11 = HAL_GetTick();
  8001326:	f001 fa53 	bl	80027d0 <HAL_GetTick>
  800132a:	4603      	mov	r3, r0
@@ -1857,12 +1852,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
  8001350:	20000004 	.word	0x20000004
 
 08001354 <ext>:
-//			time11 = HAL_GetTick();
-//			flag1 = 1;
-//		}
-//}
 
-void ext() {
+
+void ext() { // Работа с прерываниями
  8001354:	b580      	push	{r7, lr}
  8001356:	af00      	add	r7, sp, #0
 	if (flag1 && HAL_GetTick() - time11 > 400
@@ -1943,14 +1935,10 @@ void ext() {
  80013e6:	481f      	ldr	r0, [pc, #124]	; (8001464 <ext+0x110>)
  80013e8:	f7ff ff65 	bl	80012b6 <lcd_send_string>
 		}
-//			HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 		NVIC->ISER[1] = (1 << (EXTI15_10_IRQn & 0x1F));
  80013ec:	4b1e      	ldr	r3, [pc, #120]	; (8001468 <ext+0x114>)
  80013ee:	f44f 7280 	mov.w	r2, #256	; 0x100
  80013f2:	605a      	str	r2, [r3, #4]
-
-//			__HAL_GPIO_EXTI_CLEAR_IT(KN1_Pin);
-//			__HAL_GPIO_EXTI_CLEAR_IT(KN2_Pin);
 
 	}
 	if (flag2 && HAL_GetTick() - time1 > 400 // прерывание. остановка или запуск двигателя
@@ -1993,15 +1981,10 @@ void ext() {
  800143e:	4b0b      	ldr	r3, [pc, #44]	; (800146c <ext+0x118>)
  8001440:	2200      	movs	r2, #0
  8001442:	701a      	strb	r2, [r3, #0]
-//			HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 		NVIC->ISER[1] = (1 << (EXTI15_10_IRQn & 0x1F));
  8001444:	4b08      	ldr	r3, [pc, #32]	; (8001468 <ext+0x114>)
  8001446:	f44f 7280 	mov.w	r2, #256	; 0x100
  800144a:	605a      	str	r2, [r3, #4]
-//			__HAL_GPIO_EXTI_CLEAR_IT(KN2_Pin);
-//			__HAL_GPIO_EXTI_CLEAR_IT(KN1_Pin);
-
-//		HAL_Delay(100);
 	}
 }
  800144c:	bf00      	nop
@@ -2018,9 +2001,9 @@ void ext() {
  8001474:	20000249 	.word	0x20000249
 
 08001478 <MENU_SET.0>:
+	lcd_put_cur(0, 7);
 	lcd_send_string(" _");
 	HAL_Delay(100);
-//	HAL_NVIC_SetPendingIRQ(EXTI15_10_IRQn);
 	HAL_GPIO_EXTI_Callback(KN1_Pin);
 // ==============================================================================
 	void MENU_SET(uint8_t enc_pos, uint32_t Delay) {
@@ -2093,15 +2076,15 @@ void ext() {
  80014ec:	4603      	mov	r3, r0
  80014ee:	2b00      	cmp	r3, #0
  80014f0:	d107      	bne.n	8001502 <MENU_SET.0+0x8a>
-						cur_time = cur_time - 10;
+						SPEED_RPM = SPEED_RPM - 10;
  80014f2:	6823      	ldr	r3, [r4, #0]
  80014f4:	3b0a      	subs	r3, #10
  80014f6:	6023      	str	r3, [r4, #0]
-						if (cur_time <= 0) {
+						if (SPEED_RPM <= 0) {
  80014f8:	6823      	ldr	r3, [r4, #0]
  80014fa:	2b00      	cmp	r3, #0
  80014fc:	dc01      	bgt.n	8001502 <MENU_SET.0+0x8a>
-							cur_time = 1;
+							SPEED_RPM = 1;
  80014fe:	2301      	movs	r3, #1
  8001500:	6023      	str	r3, [r4, #0]
 						}
@@ -2114,18 +2097,18 @@ void ext() {
  800150c:	4603      	mov	r3, r0
  800150e:	2b01      	cmp	r3, #1
  8001510:	d11e      	bne.n	8001550 <MENU_SET.0+0xd8>
-						cur_time = cur_time - 1;
+						SPEED_RPM = SPEED_RPM - 1;
  8001512:	6823      	ldr	r3, [r4, #0]
  8001514:	3b01      	subs	r3, #1
  8001516:	6023      	str	r3, [r4, #0]
-						if (cur_time <= 0) {
+						if (SPEED_RPM <= 0) {
  8001518:	6823      	ldr	r3, [r4, #0]
  800151a:	2b00      	cmp	r3, #0
  800151c:	dc18      	bgt.n	8001550 <MENU_SET.0+0xd8>
-							cur_time = 1;
+							SPEED_RPM = 1;
  800151e:	2301      	movs	r3, #1
  8001520:	6023      	str	r3, [r4, #0]
-						cur_time = cur_time + 1;
+						SPEED_RPM = SPEED_RPM + 1;
 					}
 
 				}
@@ -2139,7 +2122,7 @@ void ext() {
  800152e:	4603      	mov	r3, r0
  8001530:	2b00      	cmp	r3, #0
  8001532:	d102      	bne.n	800153a <MENU_SET.0+0xc2>
-						cur_time = cur_time + 10;
+						SPEED_RPM = SPEED_RPM + 10;
  8001534:	6823      	ldr	r3, [r4, #0]
  8001536:	330a      	adds	r3, #10
  8001538:	6023      	str	r3, [r4, #0]
@@ -2150,7 +2133,7 @@ void ext() {
  8001544:	4603      	mov	r3, r0
  8001546:	2b01      	cmp	r3, #1
  8001548:	d102      	bne.n	8001550 <MENU_SET.0+0xd8>
-						cur_time = cur_time + 1;
+						SPEED_RPM = SPEED_RPM + 1;
  800154a:	6823      	ldr	r3, [r4, #0]
  800154c:	3301      	adds	r3, #1
  800154e:	6023      	str	r3, [r4, #0]
@@ -2209,7 +2192,7 @@ void ext() {
  800159c:	2104      	movs	r1, #4
  800159e:	2001      	movs	r0, #1
  80015a0:	f7ff fe2a 	bl	80011f8 <lcd_put_cur>
-				lcd_send_string(itoa(cur_time, buff, 10));
+				lcd_send_string(itoa(SPEED_RPM, buff, 10));
  80015a4:	f104 010c 	add.w	r1, r4, #12
  80015a8:	6823      	ldr	r3, [r4, #0]
  80015aa:	220a      	movs	r2, #10
@@ -2313,7 +2296,7 @@ int main(void) {
 	uint8_t cur_dir = 0;
  8001674:	2300      	movs	r3, #0
  8001676:	f887 3037 	strb.w	r3, [r7, #55]	; 0x37
-	int32_t cur_time = 10;
+	int32_t SPEED_RPM = 10;
  800167a:	230a      	movs	r3, #10
  800167c:	603b      	str	r3, [r7, #0]
 	uint8_t flag_ac = 0;
@@ -2382,7 +2365,7 @@ int main(void) {
 	HAL_Delay(10);
  80016fc:	200a      	movs	r0, #10
  80016fe:	f001 f871 	bl	80027e4 <HAL_Delay>
-	lcd_send_string(itoa(cur_time, buff, 10));
+	lcd_send_string(itoa(SPEED_RPM, buff, 10));
  8001702:	6838      	ldr	r0, [r7, #0]
  8001704:	463b      	mov	r3, r7
  8001706:	330c      	adds	r3, #12
@@ -2486,7 +2469,7 @@ int main(void) {
 
 				Motor_On();
  80017ac:	f000 fbcc 	bl	8001f48 <Motor_On>
-				Speed(cur_time);
+				Speed(SPEED_RPM);
  80017b0:	683b      	ldr	r3, [r7, #0]
  80017b2:	4618      	mov	r0, r3
  80017b4:	f000 fb5a 	bl	8001e6c <Speed>
@@ -2512,11 +2495,8 @@ int main(void) {
  80017da:	f44f 7196 	mov.w	r1, #300	; 0x12c
  80017de:	4618      	mov	r0, r3
  80017e0:	f7ff fe4a 	bl	8001478 <MENU_SET.0>
-//					if (STOP_MOTOR == 0) {
-//						flag_usk = 1;
-//						break;
-//					}
-				if (flag_test == 1){
+
+				if (flag_test == 1) {
  80017e4:	4b17      	ldr	r3, [pc, #92]	; (8001844 <main+0x25c>)
  80017e6:	781b      	ldrb	r3, [r3, #0]
  80017e8:	b2db      	uxtb	r3, r3
@@ -3561,7 +3541,7 @@ void DelayMotor(uint32_t us) {
  8001dea:	681b      	ldr	r3, [r3, #0]
  8001dec:	2200      	movs	r2, #0
  8001dee:	625a      	str	r2, [r3, #36]	; 0x24
-	while (__HAL_TIM_GET_COUNTER(&timer) < us) ;
+	while (__HAL_TIM_GET_COUNTER(&timer) < us)
  8001df0:	bf00      	nop
  8001df2:	4b06      	ldr	r3, [pc, #24]	; (8001e0c <DelayMotor+0x2c>)
  8001df4:	681b      	ldr	r3, [r3, #0]
@@ -3569,6 +3549,7 @@ void DelayMotor(uint32_t us) {
  8001df8:	687a      	ldr	r2, [r7, #4]
  8001dfa:	429a      	cmp	r2, r3
  8001dfc:	d8f9      	bhi.n	8001df2 <DelayMotor+0x12>
+		;
 
 }
  8001dfe:	bf00      	nop
@@ -3769,7 +3750,6 @@ void Motor_Off(void) {
 
 08001f88 <Acceleration>:
 
-
 float Acceleration(uint32_t n, float a) {
  8001f88:	b580      	push	{r7, lr}
  8001f8a:	b082      	sub	sp, #8
@@ -3867,7 +3847,7 @@ void ACC() { // функция ускорения или торможения
  800204a:	b2db      	uxtb	r3, r3
  800204c:	2b00      	cmp	r3, #0
  800204e:	d054      	beq.n	80020fa <ACC+0xca>
-		while(C >= 1 ) {
+		while (C >= 1) {
  8002050:	e045      	b.n	80020de <ACC+0xae>
 			HAL_GPIO_WritePin(Motor_Step, Motor_Pin_Step, GPIO_PIN_SET);
  8002052:	4b58      	ldr	r3, [pc, #352]	; (80021b4 <ACC+0x184>)
@@ -3932,7 +3912,7 @@ void ACC() { // функция ускорения или торможения
  80020d8:	68bb      	ldr	r3, [r7, #8]
  80020da:	3301      	adds	r3, #1
  80020dc:	60bb      	str	r3, [r7, #8]
-		while(C >= 1 ) {
+		while (C >= 1) {
  80020de:	f04f 517e 	mov.w	r1, #1065353216	; 0x3f800000
  80020e2:	68f8      	ldr	r0, [r7, #12]
  80020e4:	f7fe ffb0 	bl	8001048 <__aeabi_fcmpge>
@@ -4084,9 +4064,9 @@ void Steps(uint32_t steps_) {
  80021fe:	b084      	sub	sp, #16
  8002200:	af00      	add	r7, sp, #0
  8002202:	6078      	str	r0, [r7, #4]
-		ACC();
+	ACC();
  8002204:	f7ff ff14 	bl	8002030 <ACC>
-		for (size_t i = 0; i < steps_; i++) { //razgon
+	for (size_t i = 0; i < steps_; i++) { //razgon
  8002208:	2300      	movs	r3, #0
  800220a:	60fb      	str	r3, [r7, #12]
  800220c:	e032      	b.n	8002274 <Steps+0x78>
@@ -4095,7 +4075,7 @@ void Steps(uint32_t steps_) {
 //					buffer_dir = dir__;
 //
 //			}
-			HAL_GPIO_WritePin(Motor_Step, Motor_Pin_Step, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(Motor_Step, Motor_Pin_Step, GPIO_PIN_SET);
  800220e:	4b1e      	ldr	r3, [pc, #120]	; (8002288 <Steps+0x8c>)
  8002210:	681b      	ldr	r3, [r3, #0]
  8002212:	4a1e      	ldr	r2, [pc, #120]	; (800228c <Steps+0x90>)
@@ -4103,12 +4083,12 @@ void Steps(uint32_t steps_) {
  8002216:	2201      	movs	r2, #1
  8002218:	4618      	mov	r0, r3
  800221a:	f000 ffc2 	bl	80031a2 <HAL_GPIO_WritePin>
-			DelayMotor(Delta_Time);
+		DelayMotor(Delta_Time);
  800221e:	4b1c      	ldr	r3, [pc, #112]	; (8002290 <Steps+0x94>)
  8002220:	681b      	ldr	r3, [r3, #0]
  8002222:	4618      	mov	r0, r3
  8002224:	f7ff fddc 	bl	8001de0 <DelayMotor>
-			HAL_GPIO_WritePin(Motor_Step, Motor_Pin_Step, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(Motor_Step, Motor_Pin_Step, GPIO_PIN_RESET);
  8002228:	4b17      	ldr	r3, [pc, #92]	; (8002288 <Steps+0x8c>)
  800222a:	681b      	ldr	r3, [r3, #0]
  800222c:	4a17      	ldr	r2, [pc, #92]	; (800228c <Steps+0x90>)
@@ -4116,40 +4096,40 @@ void Steps(uint32_t steps_) {
  8002230:	2200      	movs	r2, #0
  8002232:	4618      	mov	r0, r3
  8002234:	f000 ffb5 	bl	80031a2 <HAL_GPIO_WritePin>
-			DelayMotor(Delta_Time);
+		DelayMotor(Delta_Time);
  8002238:	4b15      	ldr	r3, [pc, #84]	; (8002290 <Steps+0x94>)
  800223a:	681b      	ldr	r3, [r3, #0]
  800223c:	4618      	mov	r0, r3
  800223e:	f7ff fdcf 	bl	8001de0 <DelayMotor>
-			if (STOP_MOTOR == 0) {
+		if (STOP_MOTOR == 0) {
  8002242:	4b14      	ldr	r3, [pc, #80]	; (8002294 <Steps+0x98>)
  8002244:	781b      	ldrb	r3, [r3, #0]
  8002246:	b2db      	uxtb	r3, r3
  8002248:	2b00      	cmp	r3, #0
  800224a:	d110      	bne.n	800226e <Steps+0x72>
-				flag_dec = 1;
+			flag_dec = 1;
  800224c:	4b12      	ldr	r3, [pc, #72]	; (8002298 <Steps+0x9c>)
  800224e:	2201      	movs	r2, #1
  8002250:	701a      	strb	r2, [r3, #0]
-				ACC();
+			ACC();
  8002252:	f7ff feed 	bl	8002030 <ACC>
-				flag_dec = 0;
+			flag_dec = 0;
  8002256:	4b10      	ldr	r3, [pc, #64]	; (8002298 <Steps+0x9c>)
  8002258:	2200      	movs	r2, #0
  800225a:	701a      	strb	r2, [r3, #0]
-				flag_usk = 1;
+			flag_usk = 1;
  800225c:	4b0f      	ldr	r3, [pc, #60]	; (800229c <Steps+0xa0>)
  800225e:	2201      	movs	r2, #1
  8002260:	701a      	strb	r2, [r3, #0]
-				flag_test = 1;
+			flag_test = 1;
  8002262:	4b0f      	ldr	r3, [pc, #60]	; (80022a0 <Steps+0xa4>)
  8002264:	2201      	movs	r2, #1
  8002266:	701a      	strb	r2, [r3, #0]
-				Motor_Off();
+			Motor_Off();
  8002268:	f7ff fe7e 	bl	8001f68 <Motor_Off>
-				break;
+			break;
  800226c:	e007      	b.n	800227e <Steps+0x82>
-		for (size_t i = 0; i < steps_; i++) { //razgon
+	for (size_t i = 0; i < steps_; i++) { //razgon
  800226e:	68fb      	ldr	r3, [r7, #12]
  8002270:	3301      	adds	r3, #1
  8002272:	60fb      	str	r3, [r7, #12]
@@ -4157,8 +4137,8 @@ void Steps(uint32_t steps_) {
  8002276:	687b      	ldr	r3, [r7, #4]
  8002278:	429a      	cmp	r2, r3
  800227a:	d3c8      	bcc.n	800220e <Steps+0x12>
-			}
 		}
+	}
 }
  800227c:	bf00      	nop
  800227e:	bf00      	nop

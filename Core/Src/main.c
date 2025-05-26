@@ -96,36 +96,23 @@ volatile uint8_t KN = 0;
 volatile uint8_t flag_usk = 1;
 
 volatile uint8_t flag_test = 0;
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) { //Прерывание. Р
 
-	if (GPIO_Pin == KN2_Pin) { // прерывание. остановка или запуск двигателя
-//		HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
+	if (GPIO_Pin == KN2_Pin) { // остановка или запуск двигателя
 		NVIC->ICER[1] = (1 << (EXTI15_10_IRQn & 0x1F));
-//		__HAL_GPIO_EXTI_CLEAR_IT(KN1_Pin);
 		time1 = HAL_GetTick();
 		flag2 = 1;
 	}
 	if (GPIO_Pin == KN1_Pin) {
-//		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
-//		HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
-		NVIC->ICER[1] = (1 << (EXTI15_10_IRQn & 0x1F));
-//		__HAL_GPIO_EXTI_CLEAR_IT(KN2_Pin);
+		NVIC->ICER[1] = (1 << (EXTI15_10_IRQn & 0x1F)); //абота в меню
 		time11 = HAL_GetTick();
 		flag1 = 1;
 
 	}
 }
 
-//void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
-//		if (GPIO_Pin == KN1_Pin) {
-//	//		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
-//			HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
-//			time11 = HAL_GetTick();
-//			flag1 = 1;
-//		}
-//}
 
-void ext() {
+void ext() { // Работа с прерываниями
 	if (flag1 && HAL_GetTick() - time11 > 400
 			&& HAL_GPIO_ReadPin(GPIOB, KN1_Pin) == 0) { //прерывание. установка курсора в меню
 		Position_Cur++;
@@ -143,11 +130,7 @@ void ext() {
 			lcd_put_cur(0, 7);
 			lcd_send_string(" _");
 		}
-//			HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 		NVIC->ISER[1] = (1 << (EXTI15_10_IRQn & 0x1F));
-
-//			__HAL_GPIO_EXTI_CLEAR_IT(KN1_Pin);
-//			__HAL_GPIO_EXTI_CLEAR_IT(KN2_Pin);
 
 	}
 	if (flag2 && HAL_GetTick() - time1 > 400 // прерывание. остановка или запуск двигателя
@@ -155,13 +138,7 @@ void ext() {
 		STOP_MOTOR++;
 		STOP_MOTOR = STOP_MOTOR % 2;
 		flag2 = 0;
-//			HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 		NVIC->ISER[1] = (1 << (EXTI15_10_IRQn & 0x1F));
-
-//			__HAL_GPIO_EXTI_CLEAR_IT(KN2_Pin);
-//			__HAL_GPIO_EXTI_CLEAR_IT(KN1_Pin);
-
-//		HAL_Delay(100);
 	}
 }
 /* USER CODE END 0 */
@@ -201,17 +178,13 @@ int main(void) {
 	MX_TIM1_Init();
 	/* USER CODE BEGIN 2 */
 
-//  char buffer[33];
-//  uint8_t Enc_counter;
 	HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL);
-//  previous_encoder_position = __HAL_TIM_GET_COUNTER(&htim1);
 	HAL_GPIO_WritePin(GPIOA, LCD_LED_Pin, GPIO_PIN_SET);
 	HAL_TIM_Base_Start(&htim4);
 	lcd_init();
 	HAL_Delay(100);
 	lcd_put_cur(0, 0);
 	HAL_Delay(100);
-//    lcd_send_data(0b01111110);
 	HAL_Delay(1000);
 	lcd_send_string("HELLO");
 	HAL_Delay(1000);
@@ -222,25 +195,15 @@ int main(void) {
 	/* USER CODE BEGIN WHILE */
 
 	TIM1->ARR = 5000;
-//		HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
-
 	char buff[33];
-	uint32_t enc = 0;
-	int32_t cur_steps = 1600;
-	uint8_t cur_dir = 0;
-	int32_t cur_time = 10;
-	uint8_t flag_ac = 0;
-
+	int32_t SPEED_RPM = 10; //Скорость вращения двигателя в оборотах в минуту
 	__HAL_TIM_SET_COUNTER(&htim1, 0);
-	time1 = HAL_GetTick();
-	time11 = HAL_GetTick();
-//	HAL_NVIC_EnableIRQ(TIM1_UP_IRQn);
-	Init_Pins(GPIOB, ENA_Pin, GPIOA, STP_Pin, GPIOA, DIR_Pin);
+	Init_Pins(GPIOB, ENA_Pin, GPIOA, STP_Pin, GPIOA, DIR_Pin); // Инициализация пинов
 // ============================================================================
 	lcd_send_cmd(0b00001100);
 	HAL_Delay(10);
 	lcd_put_cur(0, 0);
-	lcd_send_string("DIR:");
+	lcd_send_string("DIR:"); //направление
 	if (DIR == 0) {
 		lcd_send_string("CCW");
 	} else {
@@ -251,13 +214,12 @@ int main(void) {
 	lcd_put_cur(1, 0);
 	lcd_send_string("RPM:");
 	HAL_Delay(10);
-	lcd_send_string(itoa(cur_time, buff, 10));
+	lcd_send_string(itoa(SPEED_RPM, buff, 10));
 	uint32_t enc_previous = 0;
 	uint32_t time_of_delay = 0;
 	lcd_put_cur(0, 7);
 	lcd_send_string(" _");
 	HAL_Delay(100);
-//	HAL_NVIC_SetPendingIRQ(EXTI15_10_IRQn);
 	HAL_GPIO_EXTI_Callback(KN1_Pin);
 // ==============================================================================
 	void MENU_SET(uint8_t enc_pos, uint32_t Delay) {
@@ -275,29 +237,27 @@ int main(void) {
 			case 1:
 				if (__HAL_TIM_IS_TIM_COUNTING_DOWN(&htim1)) {
 					if (HAL_GPIO_ReadPin(GPIOB, ENC_KN_Pin) == GPIO_PIN_RESET) {
-						cur_time = cur_time - 10;
-						if (cur_time <= 0) {
-							cur_time = 1;
+						SPEED_RPM = SPEED_RPM - 10;
+						if (SPEED_RPM <= 0) {
+							SPEED_RPM = 1;
 						}
 
 					}
 					if (HAL_GPIO_ReadPin(GPIOB, ENC_KN_Pin) == GPIO_PIN_SET) {
-						cur_time = cur_time - 1;
-						if (cur_time <= 0) {
-							cur_time = 1;
+						SPEED_RPM = SPEED_RPM - 1;
+						if (SPEED_RPM <= 0) {
+							SPEED_RPM = 1;
 						}
 					}
 
 				} else {
 					if (HAL_GPIO_ReadPin(GPIOB, ENC_KN_Pin) == GPIO_PIN_RESET) {
-						cur_time = cur_time + 10;
+						SPEED_RPM = SPEED_RPM + 10;
 					}
 					if (HAL_GPIO_ReadPin(GPIOB, ENC_KN_Pin) == GPIO_PIN_SET) {
-						cur_time = cur_time + 1;
+						SPEED_RPM = SPEED_RPM + 1;
 					}
-
 				}
-
 				break;
 			}
 			enc_previous = enc_pos;
@@ -318,11 +278,9 @@ int main(void) {
 				lcd_put_cur(1, 4);
 				lcd_send_string("   ");
 				lcd_put_cur(1, 4);
-				lcd_send_string(itoa(cur_time, buff, 10));
-
+				lcd_send_string(itoa(SPEED_RPM, buff, 10));
 			}
 			time_of_delay = HAL_GetTick();
-//				HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 		}
 	}
 // =============================================================================
@@ -355,32 +313,21 @@ int main(void) {
 			while (1) {
 
 				Motor_On();
-				Speed(cur_time);
+				Speed(SPEED_RPM);
 				MOTOR_Direction(DIR);
-//					Steps(5);
 				ext();
 				Steps(10);
 				MENU_SET(TIM1->CNT / 2, 300);
-//					if (STOP_MOTOR == 0) {
-//						flag_usk = 1;
-//						break;
-//					}
-				if (flag_test == 1){
+
+				if (flag_test == 1) {
 					flag_test = 0;
 					break;
 				}
 			}
 
-//				HAL_Delay(cur_steps);
-
 		}
 	}
 }
-
-//			MOTOR_Direction();
-//				lcd_clear();
-//  		Motor_Off();
-//  		HAL_Delay(1000);
 
 /* USER CODE END 3 */
 

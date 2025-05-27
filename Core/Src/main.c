@@ -78,7 +78,7 @@ volatile uint8_t flag_irq = 0;
 volatile uint32_t time_irq = 0;
 
 volatile uint32_t STPS = 1600;
-volatile uint32_t DIR = 1;
+volatile uint32_t DIR = 0;
 volatile uint32_t TIME = 1;
 volatile uint8_t FLAG = 0;
 volatile uint8_t FLAG1 = 1;
@@ -117,7 +117,7 @@ void ext() { // Работа с прерываниями
 	if (flag1 && HAL_GetTick() - time11 > 400
 			&& HAL_GPIO_ReadPin(GPIOB, KN1_Pin) == 0) { //прерывание. установка курсора в меню
 		Position_Cur++;
-		Position_Cur = Position_Cur % 2;
+		Position_Cur = Position_Cur % 3;
 		flag1 = 0;
 
 		if (Position_Cur == 1) {
@@ -125,11 +125,15 @@ void ext() { // Работа с прерываниями
 			lcd_send_string("  ");
 			lcd_put_cur(1, 7);
 			lcd_send_string(" _");
-		} else {
+		} else if (Position_Cur == 0) {
 			lcd_put_cur(1, 7);
 			lcd_send_string("  ");
 			lcd_put_cur(0, 7);
 			lcd_send_string(" _");
+		}
+		else if (Position_Cur == 2){
+			lcd_put_cur(1, 7);
+			lcd_send_string("  ");
 		}
 		NVIC->ISER[1] = (1 << (EXTI15_10_IRQn & 0x1F));
 
@@ -206,8 +210,9 @@ int main(void) {
 	lcd_send_cmd(0b00001100);
 	HAL_Delay(10);
 	lcd_put_cur(0, 0);
+	DIR = 0;
 	lcd_send_string("DIR:"); //направление
-	if (DIR == 0) {
+	if (DIR == 1) {
 		lcd_send_string("CCW");
 	} else {
 		lcd_send_string("CW ");
@@ -317,7 +322,7 @@ int main(void) {
 
 				MENU_SET(TIM1->CNT / 2, 300);
 				Motor_On();
-				MOTOR_Direction(DIR);
+//				MOTOR_Direction(DIR);
 				Speed(SPEED_RPM);
 				ext();
 				Steps(10);

@@ -53,7 +53,7 @@ void Init_Pins(GPIO_TypeDef *GPIO_Enable, uint16_t Pin_Enable,
 }
 
 void Speed(int speed_) {
-	float USK = (float) speed_ / 0.5f * 0.104f;
+	float USK = (float) speed_ / 0.2f * 0.104f;
 	Delta_Time = (int) (60 * 1000 * 1000 / (2 * steps * speed_));
 	c0 = 1.0f * 1000.0f * 1000.0f / (Delta_Time * 2.0f)
 			* pow(2.0f * 2.0f * 3.14f / steps / USK, 0.5f);

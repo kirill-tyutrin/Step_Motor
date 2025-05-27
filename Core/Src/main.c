@@ -121,15 +121,15 @@ void ext() { // Работа с прерываниями
 		flag1 = 0;
 
 		if (Position_Cur == 1) {
-			lcd_put_cur(0, 7);
+			lcd_put_cur(0, 6);
 			lcd_send_string("  ");
 			lcd_put_cur(1, 7);
-			lcd_send_string(" _");
+			lcd_send_string("_");
 		} else if (Position_Cur == 0) {
 			lcd_put_cur(1, 7);
 			lcd_send_string("  ");
 			lcd_put_cur(0, 7);
-			lcd_send_string(" _");
+			lcd_send_string("_");
 		}
 		else if (Position_Cur == 2){
 			lcd_put_cur(1, 7);
@@ -223,7 +223,7 @@ int main(void) {
 	HAL_Delay(10);
 	lcd_send_string(itoa(SPEED_RPM, buff, 10));
 	lcd_put_cur(0, 7);
-	lcd_send_string(" _");
+	lcd_send_string("_");
 	HAL_Delay(100);
 	HAL_GPIO_EXTI_Callback(KN1_Pin);
 // ==============================================================================
@@ -268,6 +268,7 @@ int main(void) {
 						SPEED_RPM = SPEED_RPM + 1;
 					}
 				}
+				if (SPEED_RPM >= 200) SPEED_RPM = 199;
 				break;
 			}
 			enc_previous = enc_pos;
